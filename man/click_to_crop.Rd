@@ -18,3 +18,18 @@ A cropped SpatRaster object.
 \description{
 Interactively crop a raster
 }
+\examples{
+\dontrun{
+library(terra)
+
+# 1. Create a dummy raster for testing
+r <- rast(ncols=100, nrows=100, xmin=0, xmax=10, ymin=0, ymax=10)
+values(r) <- runif(ncell(r))
+
+# 2. Basic Crop & Mask
+cropped_poly <- click_to_crop(r, mask = TRUE)
+
+# 3. Rectangular Bounding Box Crop
+cropped_bbox <- click_to_crop(r, mask = FALSE)
+}
+}
