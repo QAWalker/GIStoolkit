@@ -19,4 +19,5 @@ Imports:
     leaflet,
     magrittr,
     mapedit,
-    sf
+    sf,
+    terra
