@@ -6,6 +6,21 @@
 #' @return A cropped SpatRaster object.
 #' @importFrom terra plot draw crs crop mask
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' library(terra)
+#'
+#' # 1. Create a dummy raster for testing
+#' r <- rast(ncols=100, nrows=100, xmin=0, xmax=10, ymin=0, ymax=10)
+#' values(r) <- runif(ncell(r))
+#'
+#' # 2. Basic Crop & Mask (User draws a custom polygon)
+#' cropped_poly <- click_to_crop(r, mask = TRUE)
+#'
+#' # 3. Rectangular Bounding Box Crop (User clicks two points)
+#' cropped_bbox <- click_to_crop(r, mask = FALSE)
+#' }
 click_to_crop <- function(raster_obj, mask = TRUE) {
 
   if (!inherits(raster_obj, "SpatRaster")) {
