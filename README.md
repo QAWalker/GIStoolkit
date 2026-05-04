@@ -10,7 +10,7 @@ You can install the development version of GIStoolkit from
 [GitHub](https://github.com/) with:
 
 ``` r
-remotes::install_github("YourUsername/GIStoolkit")
+remotes::install_github("QAWalker/GIStoolkit")
 ```
 
 ## Load the package into your R session
@@ -28,7 +28,6 @@ browser and allowing the user to save the clicked point. You must click
 the marker icon on the left to add a point.
 
 ``` r
-library(GIStoolkit)
 my_point <- get_clicked_point()
 ```
 
@@ -45,12 +44,16 @@ area visually.
   to a rectangular bounding box.
 
 ``` r
-library(terra)
-r <- rast("my_raster.tif")
+r <- terra::rast("my_raster.tif")
 
-# To get a precise polygon shape:
-precise_area <- click_to_crop(r, mask = TRUE)
+# To get a polygon shape:
+polygon_crop <- click_to_crop(r, mask = TRUE)
 
-# To crop to a rectangular window:
-quick_crop <- click_to_crop(r, mask = FALSE)
+# To crop to a rectangular defined by the extend of the points:
+rectangle_crop <- click_to_crop(r, mask = FALSE)
+
+# Save Cropped Results
+terra::writeRaster(polygon_crop, filename = "path/to/save/polygon_cropped_raster.tif")
+
+terra::writeRaster(rectangle_crop, filename = "path/to/save/rectangle_cropped_raster.tif")
 ```
