@@ -4,7 +4,7 @@
 \alias{get_clicked_point}
 \title{Interactively select a point on a map}
 \usage{
-get_clicked_point()
+get_clicked_point(imagery = FALSE)
 }
 \value{
 An `sf` object containing the geometry and attributes of the clicked point(s).

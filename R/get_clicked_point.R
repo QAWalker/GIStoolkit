@@ -25,10 +25,13 @@
 #'   # sf::st_transform(my_point, 32618) # Example transformation
 #' }
 #' }
-get_clicked_point <- function() {
-  # Create a clean base map
+
+get_clicked_point <- function(imagery = FALSE) {
   base_map <- leaflet::leaflet() %>%
-    leaflet::addProviderTiles(leaflet::providers$OpenStreetMap) %>%
+    leaflet::addProviderTiles(
+      if (imagery) leaflet::providers$Esri.WorldImagery
+      else leaflet::providers$OpenStreetMap
+    ) %>%
     leaflet::setView(lng = -98.5795, lat = 39.8283, zoom = 4)
 
   message("1. Click the 'Draw Marker' icon (the pin) on the left.")
