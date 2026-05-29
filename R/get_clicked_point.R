@@ -41,6 +41,8 @@ get_clicked_point <- function(imagery = FALSE) {
   # Capture the input
   drawn <- mapedit::editMap(base_map, title = "Select Point")
 
+  dplyr::select(drawn, "geometry")
+
   # 4. Handle the output
   if (!is.null(drawn$finished) && nrow(drawn$finished) > 0) {
     return(drawn$finished)
