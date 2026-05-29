@@ -79,3 +79,33 @@ pts <- generate_line_points(my_line, distance = 100, crs = 32618)
 ```
 
 The returned `sf` object contains a `point_id` column (sequence along the line) and a `distance_m` column (cumulative distance from the start).
+
+
+### 4. Get NAVD88 Elevation of Tidal Datums
+`get_datum_elevation(coords, datum = NULL, region = NULL, unit = "m", progress = TRUE)` interacts with the NOAA VDatum API to find the exact NAVD88 elevation where a specific tidal datum occurs at given coordinate locations.
+
+```{r get-datum-elevation, eval=FALSE}
+# Prepare your coordinate data frame (supports 'X' and 'Y')
+my_locations <- data.frame(
+  X = c(-75.211, -75.46803),
+  Y = c(36.129, 35.602986)
+)
+
+# What is the NAVD88 elevation of MHW?
+mhw_elevations <- get_datum_elevation(locations, datum = "MHW")
+
+# What is the NAVD88 elevation of MLLW?
+mllw_elevations <- get_datum_elevation(locations, datum = "MLLW")
+
+```
+
+The function returns a simplified data frame containing the coordinates, the requested tidal datum, the corresponding `navd88_elevation`, and any vertical `uncertainty` or `error` metrics returned by the API.
+
+Can be used in conjunction with `get_clicked_point` to get the 
+```{r, use-vdatum-with-get-clicked-point, eval = F}
+# get point from interactive map
+point <- get_clicked_point()
+
+# get MHHW elevation from point
+get_datum_elevation(coords = point, datum = "MHHW", unit = "m")
+```

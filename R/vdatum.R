@@ -220,6 +220,9 @@ vdatum_batch_convert <- function(coords, ..., progress = TRUE) {
   if (!is.data.frame(coords)) {
     stop("coords must be a data frame")
   }
+
+  coords <- normalize_coords(coords)
+
   if (!all(c("s_x", "s_y") %in% names(coords))) {
     stop("coords must contain columns 's_x' and 's_y'")
   }
@@ -401,6 +404,9 @@ get_datum_elevation <- function(coords, datum, region = NULL,
   if (!is.data.frame(coords)) {
     stop("coords must be a data frame")
   }
+
+  coords <- normalize_coords(coords)
+
   if (!all(c("s_x", "s_y") %in% names(coords))) {
     stop("coords must contain columns 's_x' and 's_y'")
   }
@@ -494,6 +500,9 @@ to_navd88 <- function(coords, from_datum = "MLLW", region = NULL,
   if (!is.data.frame(coords)) {
     stop("coords must be a data frame")
   }
+
+  coords <- normalize_coords(coords, req_z = TRUE)
+
   if (!all(c("s_x", "s_y") %in% names(coords))) {
     stop("coords must contain columns 's_x' and 's_y'")
   }
@@ -577,6 +586,9 @@ from_navd88 <- function(coords, to_datum = "MLLW", region = NULL,
   if (!is.data.frame(coords)) {
     stop("coords must be a data frame")
   }
+
+  coords <- normalize_coords(coords, req_z = TRUE)
+
   if (!all(c("s_x", "s_y") %in% names(coords))) {
     stop("coords must contain columns 's_x' and 's_y'")
   }
@@ -679,6 +691,9 @@ vdatum_check_points <- function(coords, region = NULL, quiet = FALSE) {
   if (!is.data.frame(coords)) {
     stop("coords must be a data frame")
   }
+
+  coords <- normalize_coords(coords)
+
   if (!all(c("s_x", "s_y") %in% names(coords))) {
     stop("coords must contain columns 's_x' and 's_y'")
   }
@@ -735,4 +750,34 @@ vdatum_check_points <- function(coords, region = NULL, quiet = FALSE) {
   }
 
   return(result_df)
+}
+
+#' Internal Helper: Standardize Column Names
+#' @keywords internal
+normalize_coords <- function(coords, req_z = FALSE) {
+  if (!is.data.frame(coords)) {
+    stop("coords must be a data frame")
+  }
+
+  if(inherits(coords, 'sf')){
+    coords <- sf::st_coordinates(coords) %>%
+      as.data.frame()
+  }
+  # Map X/Y to s_x/s_y if present
+  if (all(c("X", "Y") %in% names(coords))) {
+    coords$s_x <- coords$X
+    coords$s_y <- coords$Y
+  }
+
+  # Validate required columns
+  if (!all(c("s_x", "s_y") %in% names(coords))) {
+    stop("coords must contain columns 'X' and 'Y' (or 's_x' and 's_y')")
+  }
+
+  # Handle Z values safely if requested or if already present
+  if (req_z && !"s_z" %in% names(coords)) {
+    coords$s_z <- 0
+  }
+
+  return(coords)
 }
