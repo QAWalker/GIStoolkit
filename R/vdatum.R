@@ -759,10 +759,13 @@ normalize_coords <- function(coords, req_z = FALSE) {
     stop("coords must be a data frame")
   }
 
+<<<<<<< HEAD
   if(inherits(coords, 'sf')){
     coords <- sf::st_coordinates(coords) %>%
       as.data.frame()
   }
+=======
+>>>>>>> 1fb4643bb3543e4306331395525290676af9a763
   # Map X/Y to s_x/s_y if present
   if (all(c("X", "Y") %in% names(coords))) {
     coords$s_x <- coords$X
