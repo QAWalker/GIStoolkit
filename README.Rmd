@@ -64,15 +64,17 @@ terra::writeRaster(rectangle_crop, filename = "path/to/save/rectangle_cropped_ra
 ```
 
 ### 3. Generate Points Along a Line
-`generate_line_points(line_sf, distance, crs = 5070)` samples evenly spaced points along an `sf` linestring at a given meter interval, including the start and end of the line. Input can come from a KML/KMZ file exported from Google Earth via `kml_to_polyline()`.
+`generate_line_points(line_sf, distance, crs = 5070)` samples evenly spaced points along an `sf` linestring at a given meter interval, including the start and end of the line.
 
 ```{r generate-line-points, eval=FALSE}
-my_line <- kml_to_polyline("path/to/file.kml")
+# read in data created as a path in google earth and saved as a .kml file
+# can read a shapefile as well
+my_line <- sf::st_read("path/to/file.kml")
 
 # Place a point every 100 meters (default CONUS Albers CRS)
 pts <- generate_line_points(my_line, distance = 100)
 
-# Use UTM Zone 18N for higher accuracy on the US East Coast
+# define the CRS (using UTM Zone 18N for this example)
 pts <- generate_line_points(my_line, distance = 100, crs = 32618)
 ```
 
