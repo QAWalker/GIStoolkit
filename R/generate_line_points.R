@@ -70,7 +70,7 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
 
   # Combine in order: start, middle, end
   points <- rbind(start, middle, end)
-
+  points <- sf::st_zm(points, drop = TRUE)  # drop Z dimension
   points$point_id <- seq_len(nrow(points))
   points$distance_m <- c(0, (seq_len(nrow(middle)) - 1) * distance, total_length)
 
