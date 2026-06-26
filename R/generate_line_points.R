@@ -36,8 +36,7 @@
 #'   leaflet::addCircleMarkers(radius = 4, label = ~as.character(point_id))
 #' }
 #'
-#' @importFrom sf st_transform st_length st_line_sample st_cast st_as_sf
-#'   st_set_geometry
+#' @importFrom sf st_transform st_length st_line_sample st_cast st_as_sf st_set_geometry
 #' @importFrom dplyr slice select rename n
 #' @export
 generate_line_points <- function(line_sf, distance, crs = 5070) {
@@ -45,6 +44,19 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
 
   total_length <- as.numeric(sf::st_length(line_projected))
   n_points <- floor(total_length / distance)
+
+  if (n_points == 0) {
+    warning(sprintf(
+      "Line length (%.1f m) is shorter than the requested interval (%.1f m). ",
+      "Returning start and end points only.", total_length, distance
+    ))
+
+    points <- rbind(start, end)
+    points <- sf::st_zm(points, drop = TRUE)
+    points$point_id   <- seq_len(nrow(points))
+    points$distance_m <- c(0, total_length)
+    return(points)
+  }
 
   sampled <- sf::st_line_sample(line_projected, n = n_points, type = "regular")
 
