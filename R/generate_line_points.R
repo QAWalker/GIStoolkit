@@ -45,24 +45,6 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
   total_length <- as.numeric(sf::st_length(line_projected))
   n_points <- floor(total_length / distance)
 
-<<<<<<< HEAD
-=======
-  if (n_points == 0) {
-    warning(sprintf(
-      "Line length (%.1f m) is shorter than the requested interval (%.1f m). ",
-      "Returning start and end points only.", total_length, distance
-    ))
-
-    points <- rbind(start, end)
-    points <- sf::st_zm(points, drop = TRUE)
-    points$point_id   <- seq_len(nrow(points))
-    points$distance_m <- c(0, total_length)
-    return(points)
-  }
-
-  sampled <- sf::st_line_sample(line_projected, n = n_points, type = "regular")
-
->>>>>>> 81abb5ae1f6812799314f99b596415214fe11133
   # Extract start and end points
   start <- line_projected %>%
     sf::st_cast("POINT", warn = F) %>%
