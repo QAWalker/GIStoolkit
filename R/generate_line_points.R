@@ -67,8 +67,10 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
 
     points <- dplyr::bind_rows(start, end)
     points <- sf::st_zm(points, drop = TRUE)
+    points <- sf::st_zm(points, drop = TRUE)  # drop Z dimension
     points$point_id   <- seq_len(nrow(points))
     points$distance_m <- c(0, total_length)
+
     return(points)
   }
 
