@@ -4,6 +4,9 @@
 #' Launches an interactive leaflet map in the RStudio Viewer or web browser.
 #' The user can digitize a single point or multiple points using the 'Draw Marker' tool.
 #'
+#' @param imagery Logical. If `TRUE`, the map will load with Esri World Imagery satellite
+#'   background. If `FALSE` (the default), it will load with a standard OpenStreetMap background.
+#'
 #' @return
 #' An `sf` object containing the geometry and attributes of the clicked point(s).
 #' Returns `NULL` if the operation is cancelled or no points are drawn.

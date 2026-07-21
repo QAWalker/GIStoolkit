@@ -6,6 +6,10 @@
 \usage{
 get_clicked_point(imagery = FALSE)
 }
+\arguments{
+\item{imagery}{Logical. If `TRUE`, the map will load with Esri World Imagery satellite
+background. If `FALSE` (the default), it will load with a standard OpenStreetMap background.}
+}
 \value{
 An `sf` object containing the geometry and attributes of the clicked point(s).
 Returns `NULL` if the operation is cancelled or no points are drawn.
