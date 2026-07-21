@@ -15,6 +15,9 @@ LazyData: true
 URL: https://github.com/YourUsername/GIStoolkit
 BugReports: https://github.com/YourUsername/GIStoolkit/issues
 Imports: 
+    dplyr,
+    httr,
+    jsonlite,
     leaflet,
     magrittr,
     mapedit,
