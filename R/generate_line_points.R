@@ -50,13 +50,13 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
     sf::st_cast("POINT", warn = F) %>%
     sf::st_as_sf() %>%
     dplyr::slice(1) %>%
-    dplyr::select(geometry)
+    dplyr::select("geometry")
 
   end <- line_projected %>%
     sf::st_cast("POINT", warn = F) %>%
     sf::st_as_sf() %>%
     dplyr::slice(dplyr::n()) %>%
-    dplyr::select(geometry)
+    dplyr::select("geometry")
 
   if (n_points == 0) {
     warning(paste0(
@@ -80,7 +80,7 @@ generate_line_points <- function(line_sf, distance, crs = 5070) {
   middle <- sampled %>%
     sf::st_cast("POINT") %>%
     sf::st_as_sf() %>%
-    dplyr::rename(geometry = x) %>%
+    dplyr::rename(geometry = "x") %>%
     sf::st_set_geometry("geometry")
 
   # Combine in order: start, middle, end
