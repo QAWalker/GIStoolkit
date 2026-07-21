@@ -80,8 +80,27 @@ pts <- generate_line_points(my_line, distance = 100, crs = 32618)
 
 The returned `sf` object contains a `point_id` column (sequence along the line) and a `distance_m` column (cumulative distance from the start).
 
+### 4. Generate Points at a Distance from a Line
+`generate_line_points_buffer(line_sf, buffer_distance, sample_interval, end_cap_style = "ROUND")` creates a spatial buffer around an `sf` feature (supporting lines or polygons) and samples evenly spaced points along the resulting track. This can be useful for creating points a set distance away from a baseline feature.
 
-### 4. Get NAVD88 Elevation of Tidal Datums
+```{r generate-line-buffer-points, eval=FALSE}
+# read in data created as a path in google earth and saved as a .kml file
+# can read a shapefile as well
+my_line <- sf::st_read("path/to/file.kml")
+
+# Sample locations every 100 meters along a 15-meter outer track
+pts_15 <- generate_line_points_buffer(
+  line_sf = my_line,
+  buffer_distance = 15,
+  sample_interval = 100,
+  end_cap_style = "flat"
+)
+
+```
+
+The returned `sf` object contains a `point_id` column (sequence along the perimeter) and a `buffer_dist_m` tracking column.
+
+### 5. Get NAVD88 Elevation of Tidal Datums
 `get_datum_elevation(coords, datum = NULL, region = NULL, unit = "m", progress = TRUE)` interacts with the NOAA VDatum API to find the exact NAVD88 elevation where a specific tidal datum occurs at given coordinate locations.
 
 ```{r get-datum-elevation, eval=FALSE}
