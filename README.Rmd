@@ -1,6 +1,7 @@
 ---
 output: github_document
 ---
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -13,26 +14,26 @@ knitr::opts_chunk$set(
 
 # GIStoolkit
 
-`GIStoolkit`is a collection of handy R functions for accomplishing common GIS tasks. 
+`GIStoolkit`is a collection of handy R functions for accomplishing common GIS tasks.
 
 ## Installation
 
 You can install the development version of GIStoolkit from [GitHub](https://github.com/) with:
 
-```r
+``` r
 remotes::install_github("QAWalker/GIStoolkit")
-
 ```
 
 ## Load the package into your R session
-```r
-library(GIStoolkit)
 
+``` r
+library(GIStoolkit)
 ```
 
 ## Functions
 
 ### 1. Interactive Point Selection
+
 `get_clicked_point()` launches an interactive map in your viewer or browser and allowing the user to save the clicked point. You must click the marker icon on the left to add a point.
 
 ```{r select-point, eval=FALSE}
@@ -40,12 +41,13 @@ my_point <- get_clicked_point()
 ```
 
 ### 2. Interactive Raster Cropping
+
 `click_to_crop(raster_obj, mask = TRUE)`allows you to define a study area visually.
 
 **The `mask`parameter determines the output:**
 
-* **`mask = TRUE`(Default):** Launches a **polygon** tool. The result is clipped to the exact shape, and pixels outside are set to `NA`.
-* **`mask = FALSE`:** Launches an **extent** tool. The result is cropped to a rectangular bounding box.
+- **`mask = TRUE`(Default):** Launches a **polygon** tool. The result is clipped to the exact shape, and pixels outside are set to `NA`.
+- **`mask = FALSE`:** Launches an **extent** tool. The result is cropped to a rectangular bounding box.
 
 ```{r crop-raster, eval=FALSE}
 r <- terra::rast("my_raster.tif")
@@ -64,6 +66,7 @@ terra::writeRaster(rectangle_crop, filename = "path/to/save/rectangle_cropped_ra
 ```
 
 ### 3. Generate Points Along a Line
+
 `generate_line_points(line_sf, distance, crs = 5070)` samples evenly spaced points along an `sf` linestring at a given meter interval, including the start and end of the line.
 
 ```{r generate-line-points, eval=FALSE}
@@ -81,6 +84,7 @@ pts <- generate_line_points(my_line, distance = 100, crs = 32618)
 The returned `sf` object contains a `point_id` column (sequence along the line) and a `distance_m` column (cumulative distance from the start).
 
 ### 4. Generate Points at a Distance from a Line
+
 `generate_line_points_buffer(line_sf, buffer_distance, sample_interval, end_cap_style = "ROUND")` creates a spatial buffer around an `sf` feature (supporting lines or polygons) and samples evenly spaced points along the resulting track. This can be useful for creating points a set distance away from a baseline feature.
 
 ```{r generate-line-buffer-points, eval=FALSE}
@@ -93,14 +97,46 @@ pts_15 <- generate_line_points_buffer(
   line_sf = my_line,
   buffer_distance = 15,
   sample_interval = 100,
-  end_cap_style = "flat"
+  end_cap_style = "round", 
+  crs = 32618
 )
-
 ```
 
 The returned `sf` object contains a `point_id` column (sequence along the perimeter) and a `buffer_dist_m` tracking column.
 
+You can create one object that contains buffers of 3 different distances
+
+```{r generate-line-points-and-buffer-points, eval=FALSE}
+# Create 3 contours of points from the input line and bind them together
+pts_all <- dplyr::bind_rows(
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 15,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    ),
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 30,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    ),
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 45,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    )
+)
+
+
+```
+
 ### 5. Get NAVD88 Elevation of Tidal Datums
+
 `get_datum_elevation(coords, datum = NULL, region = NULL, unit = "m", progress = TRUE)` interacts with the NOAA VDatum API to find the exact NAVD88 elevation where a specific tidal datum occurs at given coordinate locations.
 
 ```{r get-datum-elevation, eval=FALSE}
@@ -120,7 +156,8 @@ mllw_elevations <- get_datum_elevation(locations, datum = "MLLW")
 
 The function returns a simplified data frame containing the coordinates, the requested tidal datum, the corresponding `navd88_elevation`, and any vertical `uncertainty` or `error` metrics returned by the API.
 
-Can be used in conjunction with `get_clicked_point` to get the 
+Can be used in conjunction with `get_clicked_point` to target specific study locations interactively:
+
 ```{r, use-vdatum-with-get-clicked-point, eval = F}
 # get point from interactive map
 point <- get_clicked_point()

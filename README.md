@@ -98,12 +98,42 @@ pts_15 <- generate_line_points_buffer(
   line_sf = my_line,
   buffer_distance = 15,
   sample_interval = 100,
-  end_cap_style = "flat"
+  end_cap_style = "round", 
+  crs = 32618
 )
 ```
 
 The returned `sf` object contains a `point_id` column (sequence along
 the perimeter) and a `buffer_dist_m` tracking column.
+
+You can create one object that contains buffers of 3 different distances
+
+``` r
+# Create 3 contours of points from the input line and bind them together
+pts_all <- dplyr::bind_rows(
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 15,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    ),
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 30,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    ),
+  generate_line_points_buffer(
+    line_sf = my_line,
+    buffer_distance = 45,
+    sample_interval = 25,
+    end_cap_style = "round", 
+    crs = 32618
+    )
+)
+```
 
 ### 5. Get NAVD88 Elevation of Tidal Datums
 
@@ -129,7 +159,8 @@ The function returns a simplified data frame containing the coordinates,
 the requested tidal datum, the corresponding `navd88_elevation`, and any
 vertical `uncertainty` or `error` metrics returned by the API.
 
-Can be used in conjunction with `get_clicked_point` to get the
+Can be used in conjunction with `get_clicked_point` to target specific
+study locations interactively:
 
 ``` r
 # get point from interactive map

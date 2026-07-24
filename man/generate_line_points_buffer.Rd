@@ -8,7 +8,8 @@ generate_line_points_buffer(
   line_sf,
   buffer_distance,
   sample_interval,
-  end_cap_style = "ROUND"
+  end_cap_style = "ROUND",
+  crs = 5070
 )
 }
 \arguments{
@@ -24,6 +25,11 @@ along the generated perimeter track.}
 \item{end_cap_style}{Character. Shape of the buffer ends if the input is a line feature.
 Options are \code{"ROUND"}, \code{"FLAT"}, or \code{"SQUARE"}. Case-insensitive.
 Defaults to \code{"ROUND"}.}
+
+\item{crs}{Numeric. EPSG code for a meter-based projected CRS to use during
+sampling. Defaults to \code{5070} (CONUS Albers Equal Area), which is
+appropriate for data in the contiguous United States. For higher accuracy
+use a local UTM zone (e.g. \code{32618} for UTM Zone 18N).}
 }
 \value{
 An \code{sf} object of \code{POINT} geometries located along the outer buffer

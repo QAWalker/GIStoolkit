@@ -2,8 +2,7 @@
 #'
 #' Creates a spatial buffer around an \code{sf} input feature (supporting line or
 #' polygon geometries), extracts the outer boundary perimeter, and generates
-#' evenly spaced point locations along that track. This is highly useful for
-#' setting up offshore or environmental sampling stations at fixed baseline distances.
+#' evenly spaced point locations along that track.
 #'
 #' @param line_sf An \code{sf} object containing a \code{LINESTRING},
 #'   \code{MULTILINESTRING}, \code{POLYGON}, or \code{MULTIPOLYGON} feature.
@@ -14,6 +13,10 @@
 #' @param end_cap_style Character. Shape of the buffer ends if the input is a line feature.
 #'   Options are \code{"ROUND"}, \code{"FLAT"}, or \code{"SQUARE"}. Case-insensitive.
 #'   Defaults to \code{"ROUND"}.
+#' @param crs Numeric or character. EPSG code or CRS object for a meter-based projected CRS
+#'   to use during sampling. Defaults to \code{NULL}, which inherits the CRS of \code{line_sf}.
+#'   If the input CRS is geographic (degrees), it is highly recommended to provide a local
+#'   projected CRS (e.g., a local UTM zone like \code{32618}) for accurate metric distance operations.
 #'
 #' @return An \code{sf} object of \code{POINT} geometries located along the outer buffer
 #'   perimeter containing the columns:
@@ -29,25 +32,41 @@
 #' # Create a basic standalone sample polyline (e.g., in a local meter-based UTM projection)
 #' sample_coords <- matrix(c(0, 0, 100, 50, 200, 0), ncol = 2, byrow = TRUE)
 #' sample_line <- st_linestring(sample_coords) %>%
-#'   st_sfc(crs = 32618) %>%
-#'   st_as_sf()
+#'    st_sfc(crs = 32618) %>%
+#'    st_as_sf()
 #'
-#' # Sample every 20 units along a 10-unit buffer perimeter
+#' # Sample every 20 units along a 10-unit buffer perimeter (inherits CRS 32618 automatically)
 #' pts <- generate_line_points_buffer(
-#'   line_sf = sample_line,
-#'   buffer_distance = 10,
-#'   sample_interval = 20,
-#'   end_cap_style = "flat"
+#'    line_sf = sample_line,
+#'    buffer_distance = 10,
+#'    sample_interval = 20,
+#'    end_cap_style = "flat"
 #' )
 #' }
 #'
-#' @importFrom sf st_buffer st_boundary st_cast st_length st_line_sample st_as_sf st_geometry st_zm
+#' @importFrom sf st_crs st_transform st_buffer st_boundary st_cast st_length st_line_sample st_as_sf st_geometry st_zm
 #' @importFrom dplyr select
 #' @export
-generate_line_points_buffer <- function(line_sf, buffer_distance, sample_interval, end_cap_style = "ROUND") {
+generate_line_points_buffer <- function(line_sf, buffer_distance, sample_interval, end_cap_style = "ROUND", crs = NULL) {
 
+  # Default to the input object's CRS if none is provided
+  if (is.null(crs)) {
+    crs <- sf::st_crs(line_sf)
+  }
+
+  # Transform only if the target CRS is different from the input CRS
+  line_projected <- sf::st_transform(line_sf, crs)
   # Ensure the end cap style variable corrects the input to proper uppercase
   end_cap_style <- toupper(as.character(end_cap_style))
+
+  # Check if the active CRS is longitude/latitude and warn if not
+  if (sf::st_is_longlat(line_projected)) {
+    warning(
+      "`line_sf` is not projected and no projected crs provided.\n",
+      "`buffer_distance` and `sample_interval` will be treated as decimal degrees, NOT meters or feet.\n",
+      "It is highly recommended to provide a meter-based projected CRS (e.g., a local UTM zone) via the `crs` argument."
+    )
+  }
 
   if (!end_cap_style %in% c("ROUND", "FLAT", "SQUARE")) {
     stop("Invalid end_cap_style. Must be 'ROUND', 'FLAT', or 'SQUARE'.")
@@ -55,7 +74,7 @@ generate_line_points_buffer <- function(line_sf, buffer_distance, sample_interva
 
   # Generate the spatial buffer
   line_buffer <- sf::st_buffer(
-    line_sf,
+    line_projected,
     dist = buffer_distance,
     endCapStyle = end_cap_style
   )
