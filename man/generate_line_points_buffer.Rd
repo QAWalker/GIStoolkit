@@ -9,7 +9,7 @@ generate_line_points_buffer(
   buffer_distance,
   sample_interval,
   end_cap_style = "ROUND",
-  crs = 5070
+  crs = NULL
 )
 }
 \arguments{
@@ -26,10 +26,10 @@ along the generated perimeter track.}
 Options are \code{"ROUND"}, \code{"FLAT"}, or \code{"SQUARE"}. Case-insensitive.
 Defaults to \code{"ROUND"}.}
 
-\item{crs}{Numeric. EPSG code for a meter-based projected CRS to use during
-sampling. Defaults to \code{5070} (CONUS Albers Equal Area), which is
-appropriate for data in the contiguous United States. For higher accuracy
-use a local UTM zone (e.g. \code{32618} for UTM Zone 18N).}
+\item{crs}{Numeric or character. EPSG code or CRS object for a meter-based projected CRS
+to use during sampling. Defaults to \code{NULL}, which inherits the CRS of \code{line_sf}.
+If the input CRS is geographic (degrees), it is highly recommended to provide a local
+projected CRS (e.g., a local UTM zone like \code{32618}) for accurate metric distance operations.}
 }
 \value{
 An \code{sf} object of \code{POINT} geometries located along the outer buffer
@@ -42,8 +42,7 @@ An \code{sf} object of \code{POINT} geometries located along the outer buffer
 \description{
 Creates a spatial buffer around an \code{sf} input feature (supporting line or
 polygon geometries), extracts the outer boundary perimeter, and generates
-evenly spaced point locations along that track. This is highly useful for
-setting up offshore or environmental sampling stations at fixed baseline distances.
+evenly spaced point locations along that track.
 }
 \examples{
 \dontrun{
@@ -52,15 +51,15 @@ library(sf)
 # Create a basic standalone sample polyline (e.g., in a local meter-based UTM projection)
 sample_coords <- matrix(c(0, 0, 100, 50, 200, 0), ncol = 2, byrow = TRUE)
 sample_line <- st_linestring(sample_coords) \%>\%
-  st_sfc(crs = 32618) \%>\%
-  st_as_sf()
+   st_sfc(crs = 32618) \%>\%
+   st_as_sf()
 
-# Sample every 20 units along a 10-unit buffer perimeter
+# Sample every 20 units along a 10-unit buffer perimeter (inherits CRS 32618 automatically)
 pts <- generate_line_points_buffer(
-  line_sf = sample_line,
-  buffer_distance = 10,
-  sample_interval = 20,
-  end_cap_style = "flat"
+   line_sf = sample_line,
+   buffer_distance = 10,
+   sample_interval = 20,
+   end_cap_style = "flat"
 )
 }
 
