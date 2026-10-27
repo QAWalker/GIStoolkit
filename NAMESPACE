@@ -3,6 +3,7 @@
 export("%>%")
 export(add_breakwater)
 export(click_to_crop)
+export(click_to_draw_features)
 export(from_navd88)
 export(generate_line_points)
 export(generate_line_points_buffer)

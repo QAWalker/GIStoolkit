@@ -32,14 +32,17 @@ library(GIStoolkit)
 
 ## Functions
 
-### 1. Interactive Point Selection
+### 1. Interactive Feature Drawing
 
-`get_clicked_point()` launches an interactive map in your viewer or browser and allowing the user to save the clicked point. You must click the marker icon on the left to add a point.
+`click_to_draw_features()` launches an interactive map in your viewer or browser and lets you digitize points, lines, or polygons, returning them as an `sf` object. Choose a drawing tool on the left, draw on the map, and click **Done** to save. Set `imagery = TRUE` for a satellite basemap.
 
-```{r select-point, eval=FALSE}
-my_point <- get_clicked_point()
+```{r draw-features, eval=FALSE}
+# draw a point, line, or polygon
+my_features <- click_to_draw_features()
+
+# satellite basemap
+my_line <- click_to_draw_features(imagery = TRUE)
 ```
-
 ### 2. Interactive Raster Cropping
 
 `click_to_crop(raster_obj, mask = TRUE)`allows you to define a study area visually.
@@ -156,12 +159,52 @@ mllw_elevations <- get_datum_elevation(locations, datum = "MLLW")
 
 The function returns a simplified data frame containing the coordinates, the requested tidal datum, the corresponding `navd88_elevation`, and any vertical `uncertainty` or `error` metrics returned by the API.
 
-Can be used in conjunction with `get_clicked_point` to target specific study locations interactively:
+Can be used in conjunction with `click_to_draw_features` to target specific study locations interactively:
 
-```{r, use-vdatum-with-get-clicked-point, eval = F}
+```{r, use-vdatum-with-get-drawn-features, eval = F}
 # get point from interactive map
-point <- get_clicked_point()
+point <- click_to_draw_features()
 
 # get MHHW elevation from point
 get_datum_elevation(coords = point, datum = "MHHW", unit = "m")
 ```
+### 6. Simulate a Breakwater in a Bathymetry Raster
+
+`add_breakwater(r, geom, peak, toe = NA, buffer_dist)` modifies a bathymetry raster to simulate adding a breakwater or sill. Cells along the feature are set to the `peak` elevation, cells at `buffer_dist` from the feature are set to the `toe` elevation, and cells in between are linearly interpolated by their distance from the feature. The result is a new raster; the input is not changed.
+
+**Arguments:**
+
+- `r`: a single-layer `SpatRaster` of bathymetry/elevation
+- `geom`: an `sf` object of points, lines, or polygons marking the structure
+- `peak`: crest elevation, in the vertical units of `r`
+- `toe`: toe elevation, in the vertical units of `r`. If `NA` (default), the original raster values are used at the buffer edge, so the structure blends into the existing surface
+- `buffer_dist`: horizontal distance from `geom` to the toe, in meters (or map units if the raster CRS is projected and not in meters)
+
+**The geometry type determines the shape of the structure:**
+
+- **Line:** a one-cell-wide crest at `peak` that slopes to the toe on both sides
+- **Polygon:** a flat-topped crest covering the whole footprint, sloping outward from the polygon edge. Use this to model a structure with a real crest width
+- **Point:** a mound or cone with one cell at `peak`, tapering to the toe at `buffer_dist`
+
+```{r add-breakwater, eval=FALSE}
+r    <- terra::rast("my_bathymetry_utm.tif")
+sill <- sf::st_read("path/to/sill_line.shp")
+
+# Fixed toe elevation: crest at 1 m, toe at 0.5 m, 5 m wide slope on each side
+r_new <- add_breakwater(r, sill, peak = 1, toe = 0.5, buffer_dist = 5)
+
+# Blend into the existing bed at the buffer edge
+r_new_blend <- add_breakwater(r, sill, peak = 1, toe = NA, buffer_dist = 5)
+
+```
+
+Elevations are set exactly as specified, so crest cells are set to `peak` even where the original raster is higher. The geometry is transformed to the raster's CRS automatically, but both must have a CRS defined.
+
+Pairs well with `get_datum_elevation()` for choosing crest and toe elevations relative to a tidal datum
+
+To view the result interactively:
+
+```{r breakwater-leaflet, eval=FALSE}
+terra::plet(r_new, tiles = "Esri.WorldImagery")
+```
+
