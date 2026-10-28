@@ -199,4 +199,39 @@ a new raster; the input is not changed.
   the original raster values are used at the buffer edge, so the
   structure blends into the existing surface
 - `buffer_dist`: horizontal distance from `geom` to the toe, in meters
-  (or map units if the
+  (or map units if the raster CRS is projected and not in meters)
+
+**The geometry type determines the shape of the structure:**
+
+- **Line:** a one-cell-wide crest at `peak` that slopes to the toe on
+  both sides
+- **Polygon:** a flat-topped crest covering the whole footprint, sloping
+  outward from the polygon edge. Use this to model a structure with a
+  real crest width
+- **Point:** a mound or cone with one cell at `peak`, tapering to the
+  toe at `buffer_dist`
+
+``` r
+r    <- terra::rast("my_bathymetry_utm.tif")
+sill <- sf::st_read("path/to/sill_line.shp")
+
+# Fixed toe elevation: crest at 1 m, toe at 0.5 m, 5 m wide slope on each side
+r_new <- add_breakwater(r, sill, peak = 1, toe = 0.5, buffer_dist = 5)
+
+# Blend into the existing bed at the buffer edge
+r_new_blend <- add_breakwater(r, sill, peak = 1, toe = NA, buffer_dist = 5)
+```
+
+Elevations are set exactly as specified, so crest cells are set to
+`peak` even where the original raster is higher. The geometry is
+transformed to the raster’s CRS automatically, but both must have a CRS
+defined.
+
+Pairs well with `get_datum_elevation()` for choosing crest and toe
+elevations relative to a tidal datum
+
+To view the result interactively:
+
+``` r
+terra::plet(r_new, tiles = "Esri.WorldImagery")
+```
