@@ -14,12 +14,7 @@ export(vdatum_batch_convert)
 export(vdatum_check_points)
 export(vdatum_convert)
 export(vdatum_regions)
-importFrom(dplyr,
-  n,
-  rename,
-  select,
-  slice
-)
+importFrom(dplyr,select)
 importFrom(leaflet,
   addProviderTiles,
   leaflet,
@@ -37,10 +32,12 @@ importFrom(sf,
   st_crs,
   st_geometry,
   st_geometry_type,
+  st_is_longlat,
   st_length,
   st_line_sample,
-  st_set_geometry,
+  st_sf,
   st_transform,
+  st_union,
   st_zm
 )
 importFrom(terra,

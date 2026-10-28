@@ -2,49 +2,89 @@
 % Please edit documentation in R/generate_line_points.R
 \name{generate_line_points}
 \alias{generate_line_points}
-\title{Generate evenly spaced points along a linestring}
+\alias{generate_line_points_buffer}
+\title{Generate evenly spaced points along a feature or its buffered outline}
 \usage{
-generate_line_points(line_sf, distance, crs = 5070)
+generate_line_points(
+  line_sf,
+  sample_interval,
+  buffer_distance = 0,
+  end_cap_style = "ROUND",
+  crs = NULL
+)
+
+generate_line_points_buffer(
+  line_sf,
+  buffer_distance,
+  sample_interval,
+  end_cap_style = "ROUND",
+  crs = NULL
+)
 }
 \arguments{
-\item{line_sf}{An \code{sf} object containing a single \code{LINESTRING} or
-\code{MULTILINESTRING} feature.}
+\item{line_sf}{An \code{sf} or \code{sfc} object of \code{LINESTRING},
+\code{MULTILINESTRING}, \code{POLYGON}, or \code{MULTIPOLYGON} geometries.
+Lines and polygons cannot be mixed.}
 
-\item{distance}{Numeric. The interval distance in meters between sampled points.}
+\item{sample_interval}{Numeric. Distance between sampled points along each
+track, in the units of the working CRS (meters recommended).}
 
-\item{crs}{Numeric. EPSG code for a meter-based projected CRS to use during
-sampling. Defaults to \code{5070} (CONUS Albers Equal Area), which is
-appropriate for data in the contiguous United States. For higher accuracy
-use a local UTM zone (e.g. \code{32618} for UTM Zone 18N).}
+\item{buffer_distance}{Numeric vector of non-negative distances, in the units
+of the working CRS. \code{0} (default) samples the feature itself.}
+
+\item{end_cap_style}{Character. Shape of the buffer ends for line input:
+\code{"ROUND"} (default), \code{"FLAT"}, or \code{"SQUARE"}.
+Case-insensitive. Ignored for polygons and for \code{buffer_distance = 0}.}
+
+\item{crs}{EPSG code or CRS object for the working CRS. Defaults to
+\code{NULL}, which uses the CRS of \code{line_sf}. If the input is
+geographic (degrees), a projected CRS must be supplied (e.g. a UTM zone
+such as \code{32618}). Output is returned in this CRS.}
+
+\item{...}{Arguments passed to [generate_line_points()].}
 }
 \value{
-An \code{sf} object of \code{POINT} geometries
-  with the following columns:
+An \code{sf} object of \code{POINT} geometries with columns:
   \describe{
-    \item{point_id}{Integer sequence identifying each point in order along the line.}
-    \item{distance_m}{Cumulative distance in meters from the start of the line.
-      The final point carries the total line length, so the last interval may
-      be shorter than \code{distance}.}
+    \item{point_id}{Integer sequence along each track, restarting for each
+      value of \code{buffer_distance}.}
+    \item{buffer_dist_m}{The buffer distance of the track the point is on
+      (\code{0} for the feature itself).}
+    \item{distance_m}{Cumulative distance from the start of the track.}
   }
 }
 \description{
-Samples points at a regular distance interval along an \code{sf} linestring,
-including the start and end vertices of the line.
+Samples points at a regular interval along an \code{sf} line or polygon
+feature, along one or more buffered outlines of that feature, or both. A
+\code{buffer_distance} of \code{0} (the default) samples the feature itself
+(the line, or the boundary of a polygon). A positive value samples the
+outer perimeter of a buffer of that distance. A vector such as
+\code{c(0, 10, 100)} returns the feature plus a track at each distance.
+}
+\details{
+Multiple features are dissolved with \code{sf::st_union()} before sampling.
+Sample positions are placed at exact multiples of \code{sample_interval}
+along each track. Open lines also include their end vertex, so the last
+interval may be shorter. Closed tracks (buffer perimeters and polygon
+boundaries) start at an arbitrary vertex and do not repeat the start point.
+Tracks with several parts (e.g. a \code{MULTILINESTRING}, or a polygon with
+holes) are sampled part by part, and \code{distance_m} restarts at 0 for each.
 }
 \examples{
 \dontrun{
-my_line <- kml_to_polyline("path/to/file.kml")
+my_line <- sf::st_read("path/to/file.kml")
 
-# Sample every 100 meters using default CRS
-pts <- generate_line_points(my_line, distance = 100)
+# points every 100 m along the line itself
+pts <- generate_line_points(my_line, sample_interval = 100, crs = 32618)
 
-# Sample every 50 meters using UTM Zone 18N (US East Coast)
-pts <- generate_line_points(my_line, distance = 50, crs = 32618)
+# points every 25 m on a single 15 m buffer outline
+pts15 <- generate_line_points(my_line, 25, buffer_distance = 15, crs = 32618)
 
-# Preview in leaflet
-leaflet::leaflet(pts) \%>\%
-  leaflet::addProviderTiles(leaflet::providers$OpenStreetMap) \%>\%
-  leaflet::addCircleMarkers(radius = 4, label = ~as.character(point_id))
+# the line plus three buffer outlines in one object
+pts_all <- generate_line_points(my_line, 25,
+                                buffer_distance = c(0, 15, 30, 45),
+                                crs = 32618)
+table(pts_all$buffer_dist_m)
 }
 
 }
